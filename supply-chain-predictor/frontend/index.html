@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Supply Chain Delay Predictor | AI-Powered Logistics Intelligence</title>
+  <meta name="description" content="AI-powered supply chain delay predictor. Predict shipment delays in real-time with machine learning. Get actionable route suggestions and analytics." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Background particles -->
+  <div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <!-- ── Navigation ── -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-brand">
+      <span class="nav-icon">⛓️</span>
+      <span class="nav-title">ChainPredict<span class="nav-accent">AI</span></span>
+    </div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" id="tab-predict" onclick="switchTab('predict')">
+        <span>🔮</span> Predict
+      </button>
+      <button class="nav-tab" id="tab-dashboard" onclick="switchTab('dashboard')">
+        <span>📊</span> Dashboard
+      </button>
+      <button class="nav-tab" id="tab-history" onclick="switchTab('history')">
+        <span>🕐</span> History
+      </button>
+    </div>
+    <div class="nav-status">
+      <span class="status-dot" id="status-dot"></span>
+      <span class="status-label" id="status-label">Connecting…</span>
+    </div>
+  </nav>
+
+  <!-- ── Main Content ── -->
+  <main class="main-content">
+
+    <!-- ────────────── PREDICT TAB ────────────── -->
+    <section class="tab-panel active" id="panel-predict">
+      <div class="panel-header">
+        <h1 class="panel-title">Shipment Delay Predictor</h1>
+        <p class="panel-subtitle">Fill in the shipment details below to get an instant AI-powered delay prediction.</p>
+      </div>
+
+      <div class="predict-grid">
+        <!-- Form Card -->
+        <div class="card form-card">
+          <div class="card-header">
+            <span class="card-icon">📦</span>
+            <h2 class="card-title">Shipment Details</h2>
+          </div>
+          <form id="predict-form" onsubmit="submitPrediction(event)">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="source" class="form-label">Source City</label>
+                <input type="text" id="source" class="form-input" placeholder="e.g. Mumbai" required />
+              </div>
+              <div class="form-group">
+                <label for="destination" class="form-label">Destination City</label>
+                <input type="text" id="destination" class="form-input" placeholder="e.g. Delhi" required />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="distance" class="form-label">Distance (km)</label>
+              <div class="input-with-badge">
+                <input type="number" id="distance" class="form-input" placeholder="e.g. 250" min="1" max="5000" required />
+                <span class="input-badge" id="distance-badge">—</span>
+              </div>
+              <input type="range" id="distance-slider" class="range-slider" min="5" max="500" value="100" oninput="syncDistance(this.value)" />
+              <div class="range-labels"><span>5 km</span><span>500 km</span></div>
+            </div>
+
+            <div class="form-row three-col">
+              <div class="form-group">
+                <label class="form-label">Weather</label>
+                <div class="option-group" id="weather-group">
+                  <button type="button" class="option-btn" data-group="weather" data-value="Sunny" onclick="selectOption(this)" id="opt-weather-sunny">☀️ Sunny</button>
+                  <button type="button" class="option-btn" data-group="weather" data-value="Rainy" onclick="selectOption(this)" id="opt-weather-rainy">🌧️ Rainy</button>
+                  <button type="button" class="option-btn" data-group="weather" data-value="Storm" onclick="selectOption(this)" id="opt-weather-storm">⛈️ Storm</button>
+                </div>
+                <input type="hidden" id="weather" value="" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Traffic</label>
+                <div class="option-group" id="traffic-group">
+                  <button type="button" class="option-btn" data-group="traffic" data-value="Low" onclick="selectOption(this)" id="opt-traffic-low">🟢 Low</button>
+                  <button type="button" class="option-btn" data-group="traffic" data-value="Medium" onclick="selectOption(this)" id="opt-traffic-medium">🟡 Medium</button>
+                  <button type="button" class="option-btn" data-group="traffic" data-value="High" onclick="selectOption(this)" id="opt-traffic-high">🔴 High</button>
+                </div>
+                <input type="hidden" id="traffic" value="" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Vehicle Type</label>
+                <div class="option-group" id="vehicle-group">
+                  <button type="button" class="option-btn" data-group="vehicle_type" data-value="Bike" onclick="selectOption(this)" id="opt-vehicle-bike">🏍️ Bike</button>
+                  <button type="button" class="option-btn" data-group="vehicle_type" data-value="Van" onclick="selectOption(this)" id="opt-vehicle-van">🚐 Van</button>
+                  <button type="button" class="option-btn" data-group="vehicle_type" data-value="Truck" onclick="selectOption(this)" id="opt-vehicle-truck">🚚 Truck</button>
+                </div>
+                <input type="hidden" id="vehicle_type" value="" />
+              </div>
+            </div>
+
+            <div id="form-error" class="form-error hidden"></div>
+
+            <button type="submit" class="btn-predict" id="predict-btn">
+              <span class="btn-text">🔮 Predict Delay</span>
+              <span class="btn-loader hidden" id="btn-loader">⟳</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Result Card -->
+        <div class="card result-card" id="result-card">
+          <div class="result-placeholder" id="result-placeholder">
+            <div class="placeholder-icon">🔮</div>
+            <p class="placeholder-text">Fill in the form and hit <strong>Predict Delay</strong> to see the AI prediction appear here.</p>
+          </div>
+
+          <div class="result-content hidden" id="result-content">
+            <!-- Verdict Banner -->
+            <div class="verdict-banner" id="verdict-banner">
+              <div class="verdict-icon" id="verdict-icon"></div>
+              <div class="verdict-info">
+                <div class="verdict-label" id="verdict-label"></div>
+                <div class="verdict-route" id="verdict-route"></div>
+              </div>
+            </div>
+
+            <!-- Probability Dials -->
+            <div class="prob-section">
+              <div class="prob-dial">
+                <svg class="dial-svg" viewBox="0 0 120 120">
+                  <circle class="dial-track" cx="60" cy="60" r="50" />
+                  <circle class="dial-fill dial-ontime" id="dial-ontime-circle" cx="60" cy="60" r="50"
+                    stroke-dasharray="0 314" stroke-dashoffset="78.5" />
+                </svg>
+                <div class="dial-center">
+                  <div class="dial-pct" id="dial-ontime-pct">0%</div>
+                  <div class="dial-lbl">On Time</div>
+                </div>
+              </div>
+              <div class="prob-divider"></div>
+              <div class="prob-dial">
+                <svg class="dial-svg" viewBox="0 0 120 120">
+                  <circle class="dial-track" cx="60" cy="60" r="50" />
+                  <circle class="dial-fill dial-delay" id="dial-delay-circle" cx="60" cy="60" r="50"
+                    stroke-dasharray="0 314" stroke-dashoffset="78.5" />
+                </svg>
+                <div class="dial-center">
+                  <div class="dial-pct" id="dial-delay-pct">0%</div>
+                  <div class="dial-lbl">Delayed</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stats row -->
+            <div class="stats-row">
+              <div class="stat-chip" id="chip-distance"></div>
+              <div class="stat-chip" id="chip-weather"></div>
+              <div class="stat-chip" id="chip-traffic"></div>
+              <div class="stat-chip" id="chip-vehicle"></div>
+            </div>
+
+            <!-- Suggestions -->
+            <div class="suggestions-section">
+              <h3 class="suggestions-title">💡 Smart Recommendations</h3>
+              <div class="suggestions-list" id="suggestions-list"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ────────────── DASHBOARD TAB ────────────── -->
+    <section class="tab-panel" id="panel-dashboard">
+      <div class="panel-header">
+        <h1 class="panel-title">Analytics Dashboard</h1>
+        <p class="panel-subtitle">Real-time aggregated insights across all predictions made.</p>
+        <button class="btn-refresh" onclick="loadDashboard()" id="refresh-btn">↻ Refresh</button>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="kpi-grid" id="kpi-grid">
+        <div class="kpi-card" id="kpi-total">
+          <div class="kpi-icon">📦</div>
+          <div class="kpi-value" id="kpi-total-val">—</div>
+          <div class="kpi-label">Total Predictions</div>
+        </div>
+        <div class="kpi-card kpi-success" id="kpi-ontime">
+          <div class="kpi-icon">✅</div>
+          <div class="kpi-value" id="kpi-ontime-val">—</div>
+          <div class="kpi-label">On Time</div>
+        </div>
+        <div class="kpi-card kpi-danger" id="kpi-delayed">
+          <div class="kpi-icon">⏰</div>
+          <div class="kpi-value" id="kpi-delayed-val">—</div>
+          <div class="kpi-label">Delayed</div>
+        </div>
+        <div class="kpi-card kpi-info" id="kpi-rate">
+          <div class="kpi-icon">📈</div>
+          <div class="kpi-value" id="kpi-rate-val">—</div>
+          <div class="kpi-label">On-Time Rate</div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="charts-grid">
+        <div class="card chart-card">
+          <div class="card-header">
+            <span class="card-icon">🍩</span>
+            <h2 class="card-title">Prediction Breakdown</h2>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="donut-chart"></canvas>
+          </div>
+        </div>
+
+        <div class="card chart-card">
+          <div class="card-header">
+            <span class="card-icon">🌦️</span>
+            <h2 class="card-title">Weather Distribution</h2>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="weather-chart"></canvas>
+          </div>
+        </div>
+
+        <div class="card chart-card chart-wide">
+          <div class="card-header">
+            <span class="card-icon">📅</span>
+            <h2 class="card-title">Daily Trend</h2>
+          </div>
+          <div class="chart-wrap chart-wrap-tall">
+            <canvas id="trend-chart"></canvas>
+          </div>
+        </div>
+
+        <div class="card chart-card">
+          <div class="card-header">
+            <span class="card-icon">🚦</span>
+            <h2 class="card-title">Traffic Breakdown</h2>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="traffic-chart"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="empty-dashboard hidden" id="empty-dashboard">
+        <div class="empty-icon">📊</div>
+        <p>No predictions yet. Make some predictions first to see analytics!</p>
+        <button class="btn-predict" style="max-width:220px;align-self:center" onclick="switchTab('predict')">Go to Predictor</button>
+      </div>
+    </section>
+
+    <!-- ────────────── HISTORY TAB ────────────── -->
+    <section class="tab-panel" id="panel-history">
+      <div class="panel-header">
+        <h1 class="panel-title">Prediction History</h1>
+        <p class="panel-subtitle">Last 10 shipment predictions with details and outcomes.</p>
+      </div>
+
+      <div class="history-container" id="history-container">
+        <div class="empty-history hidden" id="empty-history">
+          <div class="empty-icon">🕐</div>
+          <p>No predictions yet. Head to the Predictor tab to get started!</p>
+          <button class="btn-predict" style="max-width:220px;align-self:center" onclick="switchTab('predict')">Make a Prediction</button>
+        </div>
+        <div id="history-list" class="history-list"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── Toast Notification ── -->
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
