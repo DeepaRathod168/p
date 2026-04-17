@@ -3,289 +3,494 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Supply Chain Delay Predictor | AI-Powered Logistics Intelligence</title>
-  <meta name="description" content="AI-powered supply chain delay predictor. Predict shipment delays in real-time with machine learning. Get actionable route suggestions and analytics." />
+  <title>ChainPredictAI – Real-Time Supply Chain Intelligence</title>
+  <meta name="description" content="AI-powered supply chain delay predictor with real-time weather, route mapping, and explainable ML predictions for logistics intelligence." />
+
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <!-- Leaflet Maps -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- Background particles -->
-  <div class="bg-orbs">
-    <div class="orb orb-1"></div>
-    <div class="orb orb-2"></div>
-    <div class="orb orb-3"></div>
-  </div>
 
-  <!-- ── Navigation ── -->
+  <!-- ══════════════ NAVBAR ══════════════ -->
   <nav class="navbar" id="navbar">
     <div class="nav-brand">
-      <span class="nav-icon">⛓️</span>
-      <span class="nav-title">ChainPredict<span class="nav-accent">AI</span></span>
+      <div class="nav-logo">⛓️</div>
+      <span>ChainPredict<span class="nav-accent">AI</span></span>
     </div>
     <div class="nav-tabs">
-      <button class="nav-tab active" id="tab-predict" onclick="switchTab('predict')">
-        <span>🔮</span> Predict
-      </button>
-      <button class="nav-tab" id="tab-dashboard" onclick="switchTab('dashboard')">
-        <span>📊</span> Dashboard
-      </button>
-      <button class="nav-tab" id="tab-history" onclick="switchTab('history')">
-        <span>🕐</span> History
-      </button>
+      <button class="nav-tab active" id="tab-predict"   onclick="switchTab('predict')">🔮 Predict</button>
+      <button class="nav-tab"        id="tab-dashboard" onclick="switchTab('dashboard')">📊 Dashboard</button>
+      <button class="nav-tab"        id="tab-history"   onclick="switchTab('history')">🕐 History</button>
+      <button class="nav-tab"        id="tab-track"     onclick="switchTab('track')">📦 Track</button>
     </div>
-    <div class="nav-status">
-      <span class="status-dot" id="status-dot"></span>
-      <span class="status-label" id="status-label">Connecting…</span>
+    <div class="nav-right">
+      <div class="nav-status">
+        <span class="status-dot" id="status-dot"></span>
+        <span id="status-label">Connecting…</span>
+      </div>
     </div>
   </nav>
 
-  <!-- ── Main Content ── -->
+  <!-- ══════════════ MAIN ══════════════ -->
   <main class="main-content">
 
-    <!-- ────────────── PREDICT TAB ────────────── -->
+    <!-- ════════════ PREDICT TAB ════════════ -->
     <section class="tab-panel active" id="panel-predict">
       <div class="panel-header">
         <h1 class="panel-title">Shipment Delay Predictor</h1>
-        <p class="panel-subtitle">Fill in the shipment details below to get an instant AI-powered delay prediction.</p>
+        <p class="panel-subtitle">Enter source and destination — distance, weather & traffic are detected automatically.</p>
       </div>
 
-      <div class="predict-grid">
-        <!-- Form Card -->
-        <div class="card form-card">
+      <div class="predict-layout">
+
+        <!-- ── Form Card ── -->
+        <div class="card" id="form-card">
           <div class="card-header">
             <span class="card-icon">📦</span>
             <h2 class="card-title">Shipment Details</h2>
           </div>
           <form id="predict-form" onsubmit="submitPrediction(event)">
+
+            <!-- Cities -->
             <div class="form-row">
               <div class="form-group">
-                <label for="source" class="form-label">Source City</label>
-                <input type="text" id="source" class="form-input" placeholder="e.g. Mumbai" required />
+                <label class="form-label" for="source">Source City</label>
+                <input type="text" id="source" class="form-input" placeholder="e.g. Mumbai" autocomplete="off" required />
               </div>
               <div class="form-group">
-                <label for="destination" class="form-label">Destination City</label>
-                <input type="text" id="destination" class="form-input" placeholder="e.g. Delhi" required />
+                <label class="form-label" for="destination">Destination City</label>
+                <input type="text" id="destination" class="form-input" placeholder="e.g. Delhi" autocomplete="off" required />
               </div>
             </div>
 
+            <!-- Auto-resolve button -->
+            <button type="button" class="btn-auto" id="resolve-btn" onclick="autoResolveRoute()">
+              <span id="resolve-icon">🛰️</span>
+              <span id="resolve-text">Auto-detect Distance, Weather & Traffic</span>
+            </button>
+
+            <!-- Distance -->
             <div class="form-group">
-              <label for="distance" class="form-label">Distance (km)</label>
-              <div class="input-with-badge">
-                <input type="number" id="distance" class="form-input" placeholder="e.g. 250" min="1" max="5000" required />
-                <span class="input-badge" id="distance-badge">—</span>
+              <label class="form-label">Distance (km)</label>
+              <div class="dist-row">
+                <input type="number" id="distance" class="form-input" placeholder="Auto-calculated or enter manually" min="1" step="0.1" />
+                <span class="dist-pin" id="distance-pin">— km</span>
               </div>
-              <input type="range" id="distance-slider" class="range-slider" min="5" max="500" value="100" oninput="syncDistance(this.value)" />
-              <div class="range-labels"><span>5 km</span><span>500 km</span></div>
             </div>
 
-            <div class="form-row three-col">
+            <!-- Live auto-status row -->
+            <div class="form-row">
               <div class="form-group">
-                <label class="form-label">Weather</label>
-                <div class="option-group" id="weather-group">
-                  <button type="button" class="option-btn" data-group="weather" data-value="Sunny" onclick="selectOption(this)" id="opt-weather-sunny">☀️ Sunny</button>
-                  <button type="button" class="option-btn" data-group="weather" data-value="Rainy" onclick="selectOption(this)" id="opt-weather-rainy">🌧️ Rainy</button>
-                  <button type="button" class="option-btn" data-group="weather" data-value="Storm" onclick="selectOption(this)" id="opt-weather-storm">⛈️ Storm</button>
+                <label class="form-label">Weather — Source</label>
+                <div class="auto-badge" id="weather-badge">
+                  <span class="auto-badge-icon" id="wx-icon">🌡️</span>
+                  <div class="ab-body">
+                    <div class="ab-label" id="wx-label">Auto-detected</div>
+                    <div class="ab-sub"   id="wx-sub">Click detect above</div>
+                  </div>
                 </div>
                 <input type="hidden" id="weather" value="" />
               </div>
-
               <div class="form-group">
-                <label class="form-label">Traffic</label>
-                <div class="option-group" id="traffic-group">
-                  <button type="button" class="option-btn" data-group="traffic" data-value="Low" onclick="selectOption(this)" id="opt-traffic-low">🟢 Low</button>
-                  <button type="button" class="option-btn" data-group="traffic" data-value="Medium" onclick="selectOption(this)" id="opt-traffic-medium">🟡 Medium</button>
-                  <button type="button" class="option-btn" data-group="traffic" data-value="High" onclick="selectOption(this)" id="opt-traffic-high">🔴 High</button>
+                <label class="form-label">Traffic — Current</label>
+                <div class="auto-badge" id="traffic-badge">
+                  <span class="auto-badge-icon" id="tr-icon">🚦</span>
+                  <div class="ab-body">
+                    <div class="ab-label" id="tr-label">Auto-detected</div>
+                    <div class="ab-sub"   id="tr-sub">Based on time of day</div>
+                  </div>
                 </div>
                 <input type="hidden" id="traffic" value="" />
               </div>
+            </div>
 
+            <!-- Manual overrides -->
+            <div class="form-row">
               <div class="form-group">
-                <label class="form-label">Vehicle Type</label>
-                <div class="option-group" id="vehicle-group">
-                  <button type="button" class="option-btn" data-group="vehicle_type" data-value="Bike" onclick="selectOption(this)" id="opt-vehicle-bike">🏍️ Bike</button>
-                  <button type="button" class="option-btn" data-group="vehicle_type" data-value="Van" onclick="selectOption(this)" id="opt-vehicle-van">🚐 Van</button>
-                  <button type="button" class="option-btn" data-group="vehicle_type" data-value="Truck" onclick="selectOption(this)" id="opt-vehicle-truck">🚚 Truck</button>
+                <label class="form-label">⚙️ Override Weather</label>
+                <div class="option-group">
+                  <button type="button" class="option-btn" data-group="weather"  data-value="Sunny" onclick="selectOption(this)">☀️ Sunny</button>
+                  <button type="button" class="option-btn" data-group="weather"  data-value="Rainy" onclick="selectOption(this)">🌧️ Rainy</button>
+                  <button type="button" class="option-btn" data-group="weather"  data-value="Storm" onclick="selectOption(this)">⛈️ Storm</button>
                 </div>
-                <input type="hidden" id="vehicle_type" value="" />
               </div>
+              <div class="form-group">
+                <label class="form-label">⚙️ Override Traffic</label>
+                <div class="option-group">
+                  <button type="button" class="option-btn" data-group="traffic"  data-value="Low"    onclick="selectOption(this)">🟢 Low</button>
+                  <button type="button" class="option-btn" data-group="traffic"  data-value="Medium" onclick="selectOption(this)">🟡 Medium</button>
+                  <button type="button" class="option-btn" data-group="traffic"  data-value="High"   onclick="selectOption(this)">🔴 High</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Vehicle -->
+            <div class="form-group">
+              <label class="form-label">Vehicle Type</label>
+              <div class="option-group">
+                <button type="button" class="option-btn" data-group="vehicle_type" data-value="Bike"  onclick="selectOption(this)" id="opt-bike">🏍️ Bike</button>
+                <button type="button" class="option-btn" data-group="vehicle_type" data-value="Van"   onclick="selectOption(this)" id="opt-van">🚐 Van</button>
+                <button type="button" class="option-btn" data-group="vehicle_type" data-value="Truck" onclick="selectOption(this)" id="opt-truck">🚚 Truck</button>
+              </div>
+              <input type="hidden" id="vehicle_type" value="" />
             </div>
 
             <div id="form-error" class="form-error hidden"></div>
 
-            <button type="submit" class="btn-predict" id="predict-btn">
-              <span class="btn-text">🔮 Predict Delay</span>
-              <span class="btn-loader hidden" id="btn-loader">⟳</span>
+            <button type="submit" class="btn-primary" id="predict-btn">
+              <span id="btn-text">🔮 Predict Delay</span>
+              <span class="spinner hidden" id="btn-spinner">⟳</span>
             </button>
           </form>
         </div>
 
-        <!-- Result Card -->
-        <div class="card result-card" id="result-card">
-          <div class="result-placeholder" id="result-placeholder">
-            <div class="placeholder-icon">🔮</div>
-            <p class="placeholder-text">Fill in the form and hit <strong>Predict Delay</strong> to see the AI prediction appear here.</p>
+        <!-- ── Result Card ── -->
+        <div class="card" id="result-card">
+          <div class="card-header">
+            <span class="card-icon">🧠</span>
+            <h2 class="card-title">AI Prediction Result</h2>
           </div>
 
-          <div class="result-content hidden" id="result-content">
-            <!-- Verdict Banner -->
+          <!-- Placeholder -->
+          <div class="result-placeholder" id="result-placeholder">
+            <div class="placeholder-glyph">🔮</div>
+            <p class="placeholder-text">Enter cities and click <strong>Predict Delay</strong> to see the AI-powered result here.</p>
+          </div>
+
+          <!-- Result (hidden until first prediction) -->
+          <div id="result-content" class="hidden">
+
+            <!-- Notification banner (for live updates) -->
+            <div id="notif-banner" class="hidden"></div>
+
+            <!-- Verdict -->
             <div class="verdict-banner" id="verdict-banner">
-              <div class="verdict-icon" id="verdict-icon"></div>
-              <div class="verdict-info">
+              <div class="verdict-emoji" id="verdict-emoji"></div>
+              <div>
                 <div class="verdict-label" id="verdict-label"></div>
-                <div class="verdict-route" id="verdict-route"></div>
+                <div class="verdict-sub"   id="verdict-sub"></div>
               </div>
             </div>
 
-            <!-- Probability Dials -->
-            <div class="prob-section">
-              <div class="prob-dial">
-                <svg class="dial-svg" viewBox="0 0 120 120">
-                  <circle class="dial-track" cx="60" cy="60" r="50" />
-                  <circle class="dial-fill dial-ontime" id="dial-ontime-circle" cx="60" cy="60" r="50"
-                    stroke-dasharray="0 314" stroke-dashoffset="78.5" />
-                </svg>
-                <div class="dial-center">
-                  <div class="dial-pct" id="dial-ontime-pct">0%</div>
-                  <div class="dial-lbl">On Time</div>
-                </div>
+            <!-- Probabilities -->
+            <div class="prob-row">
+              <div class="prob-card">
+                <div class="prob-value on-time" id="prob-ontime">0%</div>
+                <div class="prob-lbl">On Time</div>
+                <div class="prob-bar"><div class="prob-fill on-time" id="bar-ontime"></div></div>
               </div>
-              <div class="prob-divider"></div>
-              <div class="prob-dial">
-                <svg class="dial-svg" viewBox="0 0 120 120">
-                  <circle class="dial-track" cx="60" cy="60" r="50" />
-                  <circle class="dial-fill dial-delay" id="dial-delay-circle" cx="60" cy="60" r="50"
-                    stroke-dasharray="0 314" stroke-dashoffset="78.5" />
-                </svg>
-                <div class="dial-center">
-                  <div class="dial-pct" id="dial-delay-pct">0%</div>
-                  <div class="dial-lbl">Delayed</div>
-                </div>
+              <div class="prob-card">
+                <div class="prob-value delayed"  id="prob-delay">0%</div>
+                <div class="prob-lbl">Delayed</div>
+                <div class="prob-bar"><div class="prob-fill delayed"  id="bar-delay"></div></div>
               </div>
             </div>
 
-            <!-- Stats row -->
-            <div class="stats-row">
-              <div class="stat-chip" id="chip-distance"></div>
-              <div class="stat-chip" id="chip-weather"></div>
-              <div class="stat-chip" id="chip-traffic"></div>
-              <div class="stat-chip" id="chip-vehicle"></div>
+            <!-- ETA chips -->
+            <div class="eta-row">
+              <div class="eta-chip">
+                <div class="eta-val" id="eta-dist">—</div>
+                <div class="eta-lbl">Distance</div>
+              </div>
+              <div class="eta-chip">
+                <div class="eta-val" id="eta-time">—</div>
+                <div class="eta-lbl">Est. Travel Time</div>
+              </div>
+              <div class="eta-chip">
+                <div class="eta-val" id="eta-vehicle">—</div>
+                <div class="eta-lbl">Vehicle</div>
+              </div>
+              <div class="eta-chip">
+                <div class="eta-val" id="eta-weather">—</div>
+                <div class="eta-lbl">Weather</div>
+              </div>
+            </div>
+
+            <!-- AI explanation -->
+            <div class="ai-box" id="ai-box">
+              <span class="ai-box-icon">🤖</span>
+              <span id="ai-text"></span>
             </div>
 
             <!-- Suggestions -->
-            <div class="suggestions-section">
-              <h3 class="suggestions-title">💡 Smart Recommendations</h3>
-              <div class="suggestions-list" id="suggestions-list"></div>
-            </div>
+            <div class="sugg-title">💡 Smart Recommendations</div>
+            <div id="sugg-list"></div>
+
           </div>
         </div>
-      </div>
+
+        <!-- ── Map Card ── -->
+        <div class="card map-card">
+          <div class="card-header">
+            <span class="card-icon">🗺️</span>
+            <h2 class="card-title">Route Map</h2>
+            <span id="map-meta" style="margin-left:auto;font-size:0.8125rem;color:var(--text-muted)"></span>
+          </div>
+          <div class="map-placeholder" id="map-placeholder">
+            <div class="map-placeholder-icon">🗺️</div>
+            <p>Enter cities and click detect to see the route.</p>
+          </div>
+          <div id="map-container" class="hidden"></div>
+        </div>
+
+      </div><!-- /predict-layout -->
     </section>
 
-    <!-- ────────────── DASHBOARD TAB ────────────── -->
+    <!-- ════════════ DASHBOARD TAB ════════════ -->
     <section class="tab-panel" id="panel-dashboard">
       <div class="panel-header">
-        <h1 class="panel-title">Analytics Dashboard</h1>
-        <p class="panel-subtitle">Real-time aggregated insights across all predictions made.</p>
-        <button class="btn-refresh" onclick="loadDashboard()" id="refresh-btn">↻ Refresh</button>
+        <div class="panel-header-row">
+          <div>
+            <h1 class="panel-title">Analytics Dashboard</h1>
+            <p class="panel-subtitle">Aggregated insights across all shipment predictions.</p>
+          </div>
+          <button class="btn-secondary" id="refresh-btn" onclick="loadDashboard()">↻ Refresh</button>
+        </div>
       </div>
 
       <!-- KPI Cards -->
       <div class="kpi-grid" id="kpi-grid">
-        <div class="kpi-card" id="kpi-total">
+        <div class="kpi-card kpi-total">
           <div class="kpi-icon">📦</div>
-          <div class="kpi-value" id="kpi-total-val">—</div>
-          <div class="kpi-label">Total Predictions</div>
+          <div><div class="kpi-val" id="kpi-total">—</div><div class="kpi-lbl">Total Predictions</div></div>
         </div>
-        <div class="kpi-card kpi-success" id="kpi-ontime">
+        <div class="kpi-card kpi-ontime">
           <div class="kpi-icon">✅</div>
-          <div class="kpi-value" id="kpi-ontime-val">—</div>
-          <div class="kpi-label">On Time</div>
+          <div><div class="kpi-val" id="kpi-ontime">—</div><div class="kpi-lbl">On Time</div></div>
         </div>
-        <div class="kpi-card kpi-danger" id="kpi-delayed">
+        <div class="kpi-card kpi-delayed">
           <div class="kpi-icon">⏰</div>
-          <div class="kpi-value" id="kpi-delayed-val">—</div>
-          <div class="kpi-label">Delayed</div>
+          <div><div class="kpi-val" id="kpi-delayed">—</div><div class="kpi-lbl">Delayed</div></div>
         </div>
-        <div class="kpi-card kpi-info" id="kpi-rate">
+        <div class="kpi-card kpi-rate">
           <div class="kpi-icon">📈</div>
-          <div class="kpi-value" id="kpi-rate-val">—</div>
-          <div class="kpi-label">On-Time Rate</div>
+          <div><div class="kpi-val" id="kpi-rate">—</div><div class="kpi-lbl">On-Time Rate</div></div>
         </div>
       </div>
 
       <!-- Charts -->
-      <div class="charts-grid">
-        <div class="card chart-card">
-          <div class="card-header">
-            <span class="card-icon">🍩</span>
-            <h2 class="card-title">Prediction Breakdown</h2>
-          </div>
-          <div class="chart-wrap">
-            <canvas id="donut-chart"></canvas>
-          </div>
+      <div class="charts-grid" id="charts-grid">
+        <div class="card">
+          <div class="card-header"><span class="card-icon">🍩</span><h2 class="card-title">Prediction Breakdown</h2></div>
+          <div class="chart-wrap"><canvas id="donut-chart"></canvas></div>
         </div>
-
-        <div class="card chart-card">
-          <div class="card-header">
-            <span class="card-icon">🌦️</span>
-            <h2 class="card-title">Weather Distribution</h2>
-          </div>
-          <div class="chart-wrap">
-            <canvas id="weather-chart"></canvas>
-          </div>
+        <div class="card">
+          <div class="card-header"><span class="card-icon">🌦️</span><h2 class="card-title">Weather Distribution</h2></div>
+          <div class="chart-wrap"><canvas id="weather-chart"></canvas></div>
         </div>
-
-        <div class="card chart-card chart-wide">
-          <div class="card-header">
-            <span class="card-icon">📅</span>
-            <h2 class="card-title">Daily Trend</h2>
-          </div>
-          <div class="chart-wrap chart-wrap-tall">
-            <canvas id="trend-chart"></canvas>
-          </div>
+        <div class="card chart-wide">
+          <div class="card-header"><span class="card-icon">📅</span><h2 class="card-title">Daily Trend</h2></div>
+          <div class="chart-wrap chart-tall"><canvas id="trend-chart"></canvas></div>
         </div>
-
-        <div class="card chart-card">
-          <div class="card-header">
-            <span class="card-icon">🚦</span>
-            <h2 class="card-title">Traffic Breakdown</h2>
-          </div>
-          <div class="chart-wrap">
-            <canvas id="traffic-chart"></canvas>
-          </div>
+        <div class="card">
+          <div class="card-header"><span class="card-icon">🚦</span><h2 class="card-title">Traffic Breakdown</h2></div>
+          <div class="chart-wrap"><canvas id="traffic-chart"></canvas></div>
         </div>
       </div>
-      <div class="empty-dashboard hidden" id="empty-dashboard">
+
+      <div class="empty-state hidden" id="empty-dashboard">
         <div class="empty-icon">📊</div>
-        <p>No predictions yet. Make some predictions first to see analytics!</p>
-        <button class="btn-predict" style="max-width:220px;align-self:center" onclick="switchTab('predict')">Go to Predictor</button>
+        <p class="empty-text">No predictions yet. Head to the Predictor tab to get started!</p>
+        <button class="btn-primary" style="max-width:200px;margin-top:8px" onclick="switchTab('predict')">Go to Predictor</button>
       </div>
     </section>
 
-    <!-- ────────────── HISTORY TAB ────────────── -->
+    <!-- ════════════ HISTORY TAB ════════════ -->
     <section class="tab-panel" id="panel-history">
       <div class="panel-header">
-        <h1 class="panel-title">Prediction History</h1>
-        <p class="panel-subtitle">Last 10 shipment predictions with details and outcomes.</p>
+        <div class="panel-header-row">
+          <div>
+            <h1 class="panel-title">Prediction History</h1>
+            <p class="panel-subtitle">Last 20 shipment predictions with AI insights.</p>
+          </div>
+          <div class="history-filters">
+            <button class="filter-btn active" onclick="filterHistory('all', this)">All</button>
+            <button class="filter-btn"        onclick="filterHistory('on-time', this)">✅ On Time</button>
+            <button class="filter-btn"        onclick="filterHistory('delayed', this)">⏰ Delayed</button>
+          </div>
+        </div>
       </div>
 
-      <div class="history-container" id="history-container">
-        <div class="empty-history hidden" id="empty-history">
-          <div class="empty-icon">🕐</div>
-          <p>No predictions yet. Head to the Predictor tab to get started!</p>
-          <button class="btn-predict" style="max-width:220px;align-self:center" onclick="switchTab('predict')">Make a Prediction</button>
-        </div>
-        <div id="history-list" class="history-list"></div>
+      <div class="history-list" id="history-list"></div>
+      <div class="empty-state hidden" id="empty-history">
+        <div class="empty-icon">🕐</div>
+        <p class="empty-text">No predictions yet. Make some to see history here!</p>
+        <button class="btn-primary" style="max-width:200px;margin-top:8px" onclick="switchTab('predict')">Make a Prediction</button>
       </div>
+    </section>
+
+    <!-- ════════════ TRACK TAB ════════════ -->
+    <section class="tab-panel" id="panel-track">
+      <div class="panel-header">
+        <div class="panel-header-row">
+          <div>
+            <h1 class="panel-title">📦 Shipment Tracker</h1>
+            <p class="panel-subtitle">Real-time tracking — watch your shipment move from source to destination.</p>
+          </div>
+          <button class="btn-primary" style="max-width:180px;height:42px;" id="new-shipment-btn" onclick="showNewShipmentForm()">
+            + New Shipment
+          </button>
+        </div>
+      </div>
+
+      <!-- New Shipment Form -->
+      <div class="card new-shipment-card" id="new-shipment-card" style="display:none">
+        <div class="card-header">
+          <span class="card-icon">🚀</span>
+          <h2 class="card-title">Create New Shipment</h2>
+          <button class="btn-secondary" style="margin-left:auto;padding:4px 10px" onclick="hideNewShipmentForm()">✕ Close</button>
+        </div>
+        <form id="new-shipment-form" onsubmit="createShipment(event)">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="trk-source">Source City</label>
+              <input type="text" id="trk-source" class="form-input" placeholder="e.g. Mumbai" autocomplete="off" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="trk-dest">Destination City</label>
+              <input type="text" id="trk-dest" class="form-input" placeholder="e.g. Delhi" autocomplete="off" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Vehicle Type</label>
+            <div class="option-group">
+              <button type="button" class="option-btn" data-group="trk-vehicle" data-value="Bike"  onclick="selectTrkVehicle(this)">🏍️ Bike</button>
+              <button type="button" class="option-btn selected" data-group="trk-vehicle" data-value="Van"  onclick="selectTrkVehicle(this)" id="trk-van">🚐 Van</button>
+              <button type="button" class="option-btn" data-group="trk-vehicle" data-value="Truck" onclick="selectTrkVehicle(this)">🚚 Truck</button>
+            </div>
+          </div>
+          <div id="new-shipment-error" class="form-error hidden"></div>
+          <button type="submit" class="btn-primary" id="create-btn" style="margin-top:4px">
+            <span id="create-btn-text">🚀 Start Tracking</span>
+            <span class="spinner hidden" id="create-spinner">⟳</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- All Shipments View -->
+      <div id="all-shipments-view">
+        <div class="shipments-list" id="shipments-list"></div>
+        <div class="empty-state hidden" id="empty-shipments">
+          <div class="empty-icon">📦</div>
+          <p class="empty-text">No shipments yet. Create one to start real-time tracking!</p>
+          <button class="btn-primary" style="max-width:200px;margin-top:10px" onclick="showNewShipmentForm()">+ New Shipment</button>
+        </div>
+      </div>
+
+      <!-- Tracking Detail View -->
+      <div id="tracking-detail" style="display:none">
+
+        <!-- Back + Actions row -->
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap">
+          <button class="btn-secondary" onclick="backToShipments()">← All Shipments</button>
+          <div id="trk-notif-area"></div>
+          <div style="margin-left:auto;display:flex;gap:8px">
+            <button class="btn-advance" id="advance-btn" onclick="advanceShipment()">⏩ Next Status <span style="font-size:0.75rem;opacity:0.7">(Demo)</span></button>
+            <button class="btn-secondary" id="trk-refresh-btn" onclick="refreshTracking()">↻ Refresh</button>
+          </div>
+        </div>
+
+        <div class="tracking-layout">
+
+          <!-- ── Left column ── -->
+          <div class="tracking-left">
+
+            <!-- Header card -->
+            <div class="card">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:4px">
+                <div>
+                  <div class="trk-route-title" id="trk-route-title">—</div>
+                  <div class="trk-ship-id" id="trk-ship-id">—</div>
+                </div>
+                <span class="status-pill" id="trk-status-pill">—</span>
+              </div>
+              <!-- Progress bar -->
+              <div class="trk-prog-track">
+                <div class="trk-prog-fill" id="trk-prog-fill" style="width:0%"></div>
+              </div>
+              <div class="trk-prog-meta">
+                <span id="trk-prog-pct">0% complete</span>
+                <span id="trk-prog-eta"></span>
+              </div>
+            </div>
+
+            <!-- Info grid -->
+            <div class="trk-info-grid">
+              <div class="trk-info-card">
+                <div class="trk-info-icon">📍</div>
+                <div class="trk-info-val" id="trk-info-location">—</div>
+                <div class="trk-info-lbl">Current Location</div>
+              </div>
+              <div class="trk-info-card">
+                <div class="trk-info-icon">⏱️</div>
+                <div class="trk-info-val" id="trk-info-eta">—</div>
+                <div class="trk-info-lbl">ETA</div>
+              </div>
+              <div class="trk-info-card">
+                <div class="trk-info-icon">📏</div>
+                <div class="trk-info-val" id="trk-info-distance">—</div>
+                <div class="trk-info-lbl">Distance</div>
+              </div>
+              <div class="trk-info-card">
+                <div class="trk-info-icon">⚠️</div>
+                <div class="trk-info-val" id="trk-info-delay">—</div>
+                <div class="trk-info-lbl">Delay Risk</div>
+              </div>
+            </div>
+
+            <!-- AI Insight -->
+            <div class="ai-box" id="trk-ai-box" style="display:none">
+              <span class="ai-box-icon">🤖</span>
+              <span id="trk-ai-text"></span>
+            </div>
+
+            <!-- Timeline -->
+            <div class="card">
+              <div class="card-header">
+                <span class="card-icon">📍</span>
+                <h2 class="card-title">Tracking Timeline</h2>
+                <span style="margin-left:auto">
+                  <span class="live-badge"><span class="live-dot"></span>LIVE</span>
+                </span>
+              </div>
+              <ul class="timeline" id="tracking-timeline"></ul>
+            </div>
+
+          </div>
+
+          <!-- ── Right column: Map ── -->
+          <div class="tracking-right">
+            <div class="card" style="height:100%">
+              <div class="card-header">
+                <span class="card-icon">🗺️</span>
+                <h2 class="card-title">Live Route Map</h2>
+                <span style="margin-left:auto;font-size:0.8125rem;color:var(--text-muted)" id="trk-map-label"></span>
+              </div>
+              <div id="tracking-map"></div>
+            </div>
+          </div>
+
+        </div><!-- /tracking-layout -->
+      </div><!-- /tracking-detail -->
+
     </section>
 
   </main>
 
-  <!-- ── Toast Notification ── -->
+  <!-- Toast -->
   <div class="toast" id="toast"></div>
+
 
   <script src="app.js"></script>
 </body>

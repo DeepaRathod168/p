@@ -1,0 +1,137 @@
+[
+  {
+    "id": "cbbc1506",
+    "timestamp": "2026-04-17 21:50",
+    "source": "Mumbai",
+    "destination": "Delhi",
+    "distance": 1400.0,
+    "weather": "Sunny",
+    "traffic": "High",
+    "vehicle_type": "Truck",
+    "prediction": "Delayed",
+    "delay_probability": 82.0,
+    "ontime_probability": 18.0,
+    "suggestions": [
+      {
+        "type": "traffic",
+        "icon": "\ud83d\udd50",
+        "title": "Avoid Peak Traffic Hours",
+        "reason": "High traffic detected \u2014 schedule delivery before 8 AM or after 8 PM."
+      },
+      {
+        "type": "route",
+        "icon": "\ud83d\uddfa\ufe0f",
+        "title": "Take Alternate Route",
+        "reason": "Main roads are congested. Bypass roads can save 20\u201335 minutes."
+      }
+    ]
+  },
+  {
+    "id": "efb232f0",
+    "timestamp": "2026-04-17 21:51",
+    "source": "Mumbai",
+    "destination": "Delhi",
+    "distance": 1400.0,
+    "weather": "Sunny",
+    "traffic": "High",
+    "vehicle_type": "Truck",
+    "prediction": "Delayed",
+    "delay_probability": 82.0,
+    "ontime_probability": 18.0,
+    "suggestions": [
+      {
+        "type": "traffic",
+        "icon": "\ud83d\udd50",
+        "title": "Avoid Peak Traffic Hours",
+        "reason": "High traffic detected \u2014 schedule delivery before 8 AM or after 8 PM."
+      },
+      {
+        "type": "route",
+        "icon": "\ud83d\uddfa\ufe0f",
+        "title": "Take Alternate Route",
+        "reason": "Main roads are congested. Bypass roads can save 20\u201335 minutes."
+      }
+    ]
+  },
+  {
+    "id": "eea40a6b",
+    "timestamp": "2026-04-17 21:51",
+    "source": "Mumbai",
+    "destination": "Delhi",
+    "distance": 1400.0,
+    "weather": "Sunny",
+    "traffic": "High",
+    "vehicle_type": "Bike",
+    "prediction": "Delayed",
+    "delay_probability": 79.0,
+    "ontime_probability": 21.0,
+    "suggestions": [
+      {
+        "type": "traffic",
+        "icon": "\ud83d\udd50",
+        "title": "Avoid Peak Traffic Hours",
+        "reason": "High traffic detected \u2014 schedule delivery before 8 AM or after 8 PM."
+      },
+      {
+        "type": "route",
+        "icon": "\ud83d\uddfa\ufe0f",
+        "title": "Take Alternate Route",
+        "reason": "Main roads are congested. Bypass roads can save 20\u201335 minutes."
+      },
+      {
+        "type": "vehicle",
+        "icon": "\ud83d\ude9a",
+        "title": "Switch to a Van or Truck",
+        "reason": "Bike is not optimal for 1400.0 km. A van offers better reliability."
+      }
+    ]
+  },
+  {
+    "id": "ff6a46fc",
+    "timestamp": "2026-04-17 21:51",
+    "source": "Mumbai",
+    "destination": "Delhi",
+    "distance": 1400.0,
+    "weather": "Rainy",
+    "traffic": "Medium",
+    "vehicle_type": "Bike",
+    "prediction": "Delayed",
+    "delay_probability": 88.0,
+    "ontime_probability": 12.0,
+    "suggestions": [
+      {
+        "type": "weather",
+        "icon": "\ud83c\udf27\ufe0f",
+        "title": "Delay Shipment if Possible",
+        "reason": "Rainy conditions increase accident risk. Consider rescheduling."
+      },
+      {
+        "type": "vehicle",
+        "icon": "\ud83d\ude9a",
+        "title": "Switch to a Van or Truck",
+        "reason": "Bike is not optimal for 1400.0 km. A van offers better reliability."
+      }
+    ]
+  },
+  {
+    "id": "bdb4d667",
+    "timestamp": "2026-04-17 21:51",
+    "source": "Mumbai",
+    "destination": "Delhi",
+    "distance": 1400.0,
+    "weather": "Sunny",
+    "traffic": "Low",
+    "vehicle_type": "Truck",
+    "prediction": "Delayed",
+    "delay_probability": 87.0,
+    "ontime_probability": 13.0,
+    "suggestions": [
+      {
+        "type": "route",
+        "icon": "\u2705",
+        "title": "Optimal Conditions",
+        "reason": "Great weather and low traffic \u2014 this is the best time to depart!"
+      }
+    ]
+  }
+]
