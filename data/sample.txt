@@ -1,0 +1,40 @@
+AI and Multi-Agent Systems Overview
+=====================================
+
+Artificial Intelligence (AI) has advanced rapidly in recent years, enabling the development
+of multi-agent systems where multiple autonomous agents collaborate to solve complex tasks.
+
+Key Concepts
+------------
+- Large Language Models (LLMs): Foundation models like GPT-4, LLaMA 3, and Gemini that
+  power modern AI agents with language understanding and generation capabilities.
+
+- CrewAI Framework: An open-source Python framework for orchestrating role-playing, autonomous
+  AI agents. Agents are given roles, goals, and backstories to produce focused outputs.
+
+- RAG (Retrieval-Augmented Generation): Combines a retrieval system (e.g., FAISS, ChromaDB)
+  with an LLM to ground responses in real documents, reducing hallucination.
+
+- FAISS (Facebook AI Similarity Search): A library for efficient similarity search and
+  clustering of dense vector embeddings.
+
+- LangChain: A framework to build LLM-powered applications with modular components for
+  document loading, text splitting, embeddings, and vector stores.
+
+Research Pipeline
+-----------------
+1. User submits a query via the React frontend.
+2. FastAPI backend receives the query at POST /query.
+3. RAG pipeline retrieves context from the /data document store.
+4. CrewAI kicks off a sequential crew:
+   a. Research Agent – searches the web for latest facts.
+   b. Analysis Agent – identifies trends and insights.
+   c. Summary Agent  – produces a clean, structured report.
+5. Structured JSON response is returned to the frontend.
+
+Trends in 2026
+--------------
+- Agentic AI workflows are replacing single-model pipelines.
+- On-device LLMs (e.g., via Ollama) enable offline, private AI.
+- RAG adoption is accelerating across enterprise knowledge bases.
+- Multi-modal agents combining text, image, and code are emerging.
