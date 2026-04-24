@@ -105,8 +105,12 @@ def run_research(query: str) -> dict:
         max_rpm=10,
     )
 
-    result = crew.kickoff(inputs={"query": query})
-    raw_output = str(result)
+    try:
+        result = crew.kickoff(inputs={"query": query})
+        raw_output = str(result)
+    except Exception as e:
+        logger.error(f"crew.kickoff failed: {e}")
+        raise RuntimeError(f"Crew kickoff failed: {e}")
 
     if not raw_output.strip():
         raise RuntimeError("Crew produced empty output.")

@@ -14,8 +14,21 @@ const client = axios.create({
  * @returns {Promise<{summary: string, insights: string[], sources: string[], query: string, timestamp: string, duration_seconds: number}>}
  */
 export async function sendQuery(query) {
-  const response = await client.post("/query", { query });
-  return response.data;
+  console.log(`Sending query to ${BASE_URL}/query:`, query);
+  try {
+    const response = await client.post("/query", { query });
+    console.log("Received response successfully:", response.data);
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      console.error("Backend returned an error. Status:", error.response.status, "Data:", error.response.data);
+    } else if (error.request) {
+      console.error("Network Error: Backend is likely unreachable. Is FastAPI running on port 8000?", error.request);
+    } else {
+      console.error("Error setting up request:", error.message);
+    }
+    throw error;
+  }
 }
 
 /**

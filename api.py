@@ -77,12 +77,7 @@ app = FastAPI(
 # CORS — allow the React dev server and any local origin
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:5173",  # Vite dev server
-        "http://127.0.0.1:5173",
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -150,11 +145,14 @@ async def run_query(request: QueryRequest) -> dict[str, Any]:
 
     query = request.query.strip()
     logger.info("Received query: %s", query)
+    print(f"DEBUG: Incoming query POST /query - {query}")
 
     start = perf_counter()
     try:
         result = run_research(query)
+        print(f"DEBUG: Successfully executed query: {query}")
     except Exception as exc:
+        print(f"DEBUG: Failed to execute query - Error: {str(exc)}")
         logger.error("Crew execution failed: %s", exc, exc_info=True)
         raise HTTPException(
             status_code=500,
